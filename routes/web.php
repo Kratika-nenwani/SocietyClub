@@ -44,6 +44,11 @@ Route::get('/business-partner-details/{id}', [AdminController::class, 'BusinessP
 Route::post('/save-businessPartner', [AdminController::class, 'saveBusinessPartner'])->name('save-businessPartner');
 
 
+Route::get('/gallery/{id}/manage-images', [AdminController::class, 'manageImages'])->name('manage-image');
+Route::post('/gallery/{id}/delete-image', [AdminController::class, 'deleteImage'])->name('gallery.deleteImage');
+Route::post('/gallery/{id}/add-image', [AdminController::class, 'addImage'])->name('gallery.addImage');
+
+
 Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 Route::get('/create-listing', [AdminController::class, 'createlisting'])->name('create-listing');
 Route::post('save-property',[AdminController::class,'save_property'])->name('save-property');
@@ -59,13 +64,6 @@ Route::post('/account-settings/update', [AdminController::class, 'updateProfile'
 
 Route::get('/profile', [AdminController::class, 'profile'])->name('profile');
 
-// Route::get('/business-partner', [AdminController::class, 'showBusinessPartners'])->name('business-partner');
-// Route::get('/business-partner-details/{id}', [AdminController::class, 'BusinessPartnerDetails'])->name('business-partner-details');
-// Route::post('/business-partner/save', [AdminController::class, 'save'])->name('business-partner.save');
-// Route::get('/business-partner/{id}/edit', [AdminController::class, 'editBusinessPartner'])->name('business-partner.edit');
-// Route::put('/business-partner/{id}', [AdminController::class, 'updateBusinessPartner'])->name('business-partner.update');
-// Route::delete('/business-partner/{id}', [AdminController::class, 'destroyBusinessPartner'])->name('business-partner.destroy');
-
 Route::get('/society-members', [AdminController::class, 'showSocietyMembers'])->name('society-members');
 Route::delete('/society-members/{id}', [AdminController::class, 'destroySocietyMember'])->name('society-members.destroy');
 Route::get('/society-members-details/{id}', [AdminController::class, 'get'])->name('society-members-details');
@@ -77,14 +75,19 @@ Route::post('/update-role', [AdminController::class, 'update_role']);
 Route::post('/addsocietyname', [AdminController::class, 'addsocietyname']);
 
 Route::get('/gallery', [AdminController::class, 'showgallery'])->name('gallery');
-Route::post('/gallery', [AdminController::class, 'savegallery'])->name('gallery.save');
+Route::post('/gallery', [AdminController::class, 'saveGallery'])->name('gallery.save');
+
+Route::delete('/gallery/delete/{id}', [AdminController::class, 'deleteGallery'])->name('gallery.delete');
+
 
 Route::get('/notice-board', [AdminController::class, 'viewNoticeBoard'])->name('notice-board');
 Route::post('/save-notice', [AdminController::class, 'saveNotice'])->name('save-notice');
 
-Route::get('/issues/create', [AdminController::class, 'showIssueForm'])->name('issues.create');
-Route::post('/issues', [AdminController::class, 'storeIssue'])->name('issues.store');
-Route::get('/admin/issues', [AdminController::class, 'showIssue'])->name('admin.issues.show');
+Route::get('/issue', [AdminController::class, 'viewissue'])->name('issue');
+Route::post('/resolve-issue/{id}', [AdminController::class, 'resolveIssue'])->name('resolveIssue');
+Route::post('/send-message/{id}', [AdminController::class, 'sendMessage'])->name('sendMessage');
+
+Route::post('/update-status', [AdminController::class, 'updateStatus']);
 
 Route::get('auth/google', [GoogleController::class, 'googlepage']);
 Route::get('auth/google/callback', [GoogleController::class, 'googlecallback']);

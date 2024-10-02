@@ -157,34 +157,10 @@ public function checkUserRole(Request $request)
     return response()->json(['error' => 'User not authenticated'], 401);
 }
 
-public function assignRole(Request $request)
-{
-    $request->validate([
-        'user_id' => 'required|exists:users,id',  
-        'role' => 'required|string|in:society-admin,society-member,super-admin,facility-partner,business-partner,user', 
-    ]);
 
-    $user = User::find($request->user_id);
-    $user->role = $request->role;
-    $user->save();
 
-    return response()->json([
-        'message' => 'Role assigned successfully',
-        'user_id' => $user->id,
-        'role' => $user->role
-    ], 200);
-}
 
-public function getAllUsers(Request $request)
-{
-    $users = User::all();
-    return response()->json($users, 200);
-}
 
-public function getAllProperties()
-{
-    $properties = PropertyUnapproved::all();
-    return response()->json($properties, 200);
-}
+
 
 }

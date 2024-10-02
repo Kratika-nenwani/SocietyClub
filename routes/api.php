@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AdminController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -28,6 +29,8 @@ Route::controller(AuthController::class)->group(function(){
 
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 Route::middleware('auth:sanctum')->get('/check-role', [AuthController::class, 'checkUserRole']);
-Route::middleware('auth:sanctum')->post('/assign-role', [AuthController::class, 'assignRole']);
-Route::middleware('auth:sanctum')->get('/all-users', [AuthController::class, 'getAllUsers']);
-Route::middleware('auth:sanctum')->get('/all-properties', [AuthController::class, 'getAllProperties']);
+
+
+Route::middleware('auth:sanctum')->post('/assign-role', [AdminController::class, 'assignRole']);
+Route::middleware('auth:sanctum')->get('/all-users', [AdminController::class, 'getAllUsers']);
+Route::middleware('auth:sanctum')->get('/all-properties', [AdminController::class, 'getAllProperties']);

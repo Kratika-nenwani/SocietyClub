@@ -44,15 +44,15 @@
                             <tr id="partner-{{ $partner->id }}">
                                 <td>{{ $partner->id }}</td>
                                 <?php
-                                    // Assuming you have a Society model and fetching societies based on the IDs
-                                    $societyIds = json_decode($partner->society_name); // Convert JSON string to array
-                                    $societies = \App\Models\PropertyUnapproved::whereIn('id', $societyIds)->get(); // Fetch societies by IDs
-                                    $p=\App\Models\SocietyMember::where('user_id',$partner->id)->first();
-                                    ?>
-                                    @foreach ($societies as $society)
-                                    <td>{{ $society->title }}</td> 
+                                // Assuming you have a Society model and fetching societies based on the IDs
+                                $societyIds = json_decode($partner->society_name); // Convert JSON string to array
+                                $societies = \App\Models\PropertyUnapproved::whereIn('id', $societyIds)->get(); // Fetch societies by IDs
+                                $p = \App\Models\SocietyMember::where('user_id', $partner->id)->first();
+                                ?>
+                                @foreach ($societies as $society)
+                                    <td>{{ $society->title }}</td>
                                 @endforeach
-                                
+
                                 <td>{{ $p->flat }}</td>
                                 <td>{{ $partner->name }}</td>
                                 <td>{{ $partner->email }}</td>
@@ -131,8 +131,8 @@
                             <input type="text" class="form-control" id="add-phone_number" name="phone" required>
                         </div>
                         <div class="mb-4">
-                            <label for="add-phone_number" class="form-label">Flat No</label>
-                            <input type="text" class="form-control" id="add-phone_number" name="flat" required>
+                            <label for="add-flat" class="form-label">Flat No</label>
+                            <input type="text" class="form-control" id="add-flat" name="flat" required>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -150,7 +150,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title" id="editFacilityPartnerModalLabel">Edit Society Member<</h4>
+                    <h4 class="modal-title" id="editFacilityPartnerModalLabel">Edit Society Member</h4>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -166,15 +166,14 @@
                         </div>
                         <div class="form-group">
                             <label for="edit-phone_number">Phone Number</label>
-                            <input type="text" class="form-control" id="edit-phone_number" name="phone"
-                                required>
+                            <input type="text" class="form-control" id="edit-phone_number" name="phone" required>
                         </div>
+
                         <div class="form-group">
-                            <label for="edit-phone_number">Flat No</label>
-                            <input type="text" class="form-control" id="edit-flat" name="flat"
-                                required>
+                            <label for="edit-flat">Flat No</label>
+                            <input type="text" class="form-control" id="edit-flat" name="flat" required>
                         </div>
-                      
+
                         <button type="submit" class="btn btn-primary">Update Partner</button>
                     </form>
 
@@ -196,133 +195,113 @@
             });
 
             // Handle form submission for adding new facility partner
-           $('#addFacilityPartnerForm').on('submit', function(e) {
-    e.preventDefault(); // Prevent default form submission
-
-    $.ajax({
-        url: '{{ route('save-society-member') }}', // Ensure this route points correctly to your controller
-        method: 'POST',
-        data: $(this).serialize(),
-        success: function(response) {
-            console.log(response); // Log the response to verify the structure
-
-            // Show success message or default message if undefined
-            alert(response.success || 'Society Member added successfully!');
-
-            // Reload the same page to reflect new changes
-            location.reload(); // This line ensures the same page is reloaded after success
-        },
-        error: function(xhr, status, error) {
-            console.error('Error:', error);
-
-            if (xhr.status === 422) { // Handle validation errors
-                const errors = xhr.responseJSON.errors;
-                let errorMessage = 'Validation errors:\n';
-                
-                // Iterate over errors and display them
-                for (const key in errors) {
-                    errorMessage += errors[key].join(', ') + '\n'; // Use correct string concatenation
-                }
-
-                alert(errorMessage); // Show all validation errors to the user
-            } else {
-                alert('An error occurred while adding the Society Member.');
-            }
-        }
-    });
-});
-
-
-            // Edit button click
-            // Handle Edit button click
-            $('.btn-edit').on('click', function() {
-                var id = $(this).data('id');
-
-                // Fetch facility partner data
-                $.ajax({
-                    url: '/society-member-details/' + id ,
-                    method: 'GET',
-                    success: function(data) {
-                        // Fill the modal fields with existing data
-                        $('#edit-partner-id').val(data.id);
-                        $('#edit-name').val(data.name);
-                        $('#edit-email').val(data.email);
-                        $('#edit-phone_number').val(data.phone);
-                        $('#edit-flat').val(data.flat);
-                        $('#edit-society_id').val(data.society_id);
-                    }
-                });
-            });
-
-            // Handle Edit form submission
-            // Event handler for the Edit button
-            $('.btn-edit').on('click', function() {
-                var id = $(this).data('id'); // Get the id from the button
+            $('#addFacilityPartnerForm').on('submit', function(e) {
+                e.preventDefault(); // Prevent default form submission
 
                 $.ajax({
-                    url: '/facility-partner/' + id + '/edit', // Use the correct route
-                    method: 'GET',
-                    success: function(data) {
-                        // Log data to ensure you're receiving the correct data
-                        console.log(data);
-
-                        // Populate the modal fields with the response data
-                        $('#edit-partner-id').val(data.id);
-                        $('#edit-name').val(data.name);
-                        $('#edit-email').val(data.email);
-                        $('#edit-phone_number').val(data.phone);
-
-                        // Open the modal
-                        $('#editFacilityPartnerModal').modal('show');
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error:', error);
-                        console.error('Response:', xhr
-                        .responseText); // Log the response text for more details
-                        alert('An error occurred while fetching the Society Member details: ' + xhr
-                            .statusText);
-                    }
-                });
-            });
-            $('#editFacilityPartnerForm').on('submit', function(e) {
-                e.preventDefault(); // Prevent the form from submitting traditionally
-
-                var id = $('#edit-partner-id').val(); // Get the partner ID from the hidden input
-                var formData = $(this).serialize(); // Serialize the form data
-
-                console.log(formData); // Debug the data sent
-
-                $.ajax({
-                    url: '/facility-partner/' + id, // Use the correct route for updating
-                    method: 'PUT',
-                     // Use the PUT method for update
-                    data: formData,
+                    url: '{{ route('save-society-member') }}', // Ensure this route points correctly to your controller
+                    method: 'POST',
+                    data: $(this).serialize(),
                     success: function(response) {
-                        alert(response.success || 'Society Member updated successfully!');
-                        location.reload(); // Reload the page to reflect changes
+                        console.log(response); // Log the response to verify the structure
+
+                        // Show success message or default message if undefined
+                        alert(response.success || 'Society Member added successfully!');
+
+                        // Reload the same page to reflect new changes
+                        location
+                    .reload(); // This line ensures the same page is reloaded after success
                     },
                     error: function(xhr, status, error) {
                         console.error('Error:', error);
-                        alert('An error occurred while updating the Society Member.');
+
+                        if (xhr.status === 422) { // Handle validation errors
+                            const errors = xhr.responseJSON.errors;
+                            let errorMessage = 'Validation errors:\n';
+
+                            // Iterate over errors and display them
+                            for (const key in errors) {
+                                errorMessage += errors[key].join(', ') +
+                                '\n'; // Use correct string concatenation
+                            }
+
+                            alert(errorMessage); // Show all validation errors to the user
+                        } else {
+                            alert('An error occurred while adding the Society Member.');
+                        }
                     }
                 });
             });
+  // Handle Edit button click
+        $('.btn-edit').on('click', function() {
+            var id = $(this).data('id');
 
+            // Fetch facility partner data
+            $.ajax({
+                url: '/facility-partner/' + id + '/edit',
+                method: 'GET',
+                success: function(data) {
+                    console.log(data);
 
-            // Delete button click
-            $('.btn-delete').on('click', function() {
-                var id = $(this).data('id');
-                if (confirm('Are you sure you want to delete this Society Member?')) {
-                    $.ajax({
-                        url: '/facility-partner/' + id,
-                        method: 'DELETE',
-                        success: function(response) {
-                            alert(response.success);
-                            $('#partner-' + id).remove();
-                        }
-                    });
+                    // Populate the modal fields with the response data
+                    $('#edit-partner-id').val(data.id);
+                    $('#edit-name').val(data.name);
+                    $('#edit-email').val(data.email);
+                    $('#edit-phone_number').val(data.phone);
+                    $('#edit-flat').val(data.flat);
+
+                    // Open the modal
+                    $('#editFacilityPartnerModal').modal('show');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while fetching the Society Member details.');
                 }
             });
         });
-    </script>
+
+        // Handle Edit form submission
+        $('#editFacilityPartnerForm').on('submit', function(e) {
+            e.preventDefault(); // Prevent the form from submitting traditionally
+
+            var id = $('#edit-partner-id').val(); // Get the partner ID from the hidden input
+            var formData = $(this).serialize(); // Serialize the form data
+
+            console.log(formData); // Debug the data sent
+
+            $.ajax({
+                url: '/facility-partner/' + id,
+                method: 'PUT', // Use the PUT method for update
+                data: formData,
+                success: function(response) {
+                    alert(response.success || 'Society Member updated successfully!');
+                    location.reload(); // Reload the page to reflect changes
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while updating the Society Member.');
+                }
+            });
+        });
+
+        // Delete button click
+        $('.btn-delete').on('click', function() {
+            var id = $(this).data('id');
+            if (confirm('Are you sure you want to delete this Society Member?')) {
+                $.ajax({
+                    url: '/facility-partner/' + id,
+                    method: 'DELETE',
+                    success: function(response) {
+                        alert(response.success || 'Society Member deleted successfully!');
+                        $('#partner-' + id).remove(); // Remove the row from the table
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error:', error);
+                        alert('An error occurred while deleting the Society Member.');
+                    }
+                });
+            }
+        });
+    });
+</script>
 @endsection
