@@ -65,5 +65,16 @@ public function showBusinessPartners()
     ], 200);
 }
 
+public function viewissue(){
 
+    $userId = auth()->user()->society_name;
+
+    // Get the society id linked to the admin
+    $societyIds = $societyIds = json_decode($userId, true);
+
+    // Fetch the issues for this society
+    $issues = Issue::whereIn('society_id', $societyIds)->get();
+
+
+}
 }

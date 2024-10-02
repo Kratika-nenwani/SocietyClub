@@ -36,3 +36,13 @@ Route::middleware('auth:sanctum')->get('/check-role', [AuthController::class, 'c
 Route::middleware('auth:sanctum')->post('/assign-role', [AdminController::class, 'assignRole']);
 Route::middleware('auth:sanctum')->get('/all-users', [AdminController::class, 'getAllUsers']);
 Route::middleware('auth:sanctum')->get('/all-properties', [AdminController::class, 'getAllProperties']);
+
+Route::middleware('auth:sanctum')->get('/societymembers', [SocietyAdminController::class, 'getSocietyMembers']);
+Route::middleware('auth:sanctum')->get('/showFacilityPartners', [SocietyAdminController::class, 'showFacilityPartners']);
+Route::middleware('auth:sanctum')->get('/showBusinessPartners', [SocietyAdminController::class, 'showBusinessPartners']);
+
+Route::middleware('auth:sanctum')->get('/notice-board', [UserController::class, 'viewNoticeBoard']);
+Route::middleware('auth:sanctum')->get('/view-gallery', [UserController::class, 'showGallery']);
+Route::middleware('auth:sanctum')->get('/get_facility_partners', [UserController::class, 'get_facility_partners']);
+Route::middleware('auth:sanctum')->get('/get_business_partners', [UserController::class, 'get_business_partners']);
+Route::middleware('auth:sanctum')->post('/add-issue', [UserController::class, 'add_issue']);
