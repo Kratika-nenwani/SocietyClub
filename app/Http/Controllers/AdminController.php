@@ -13,6 +13,7 @@ use App\Models\UserProfile;
 use App\Models\Notice;
 use App\Models\Property;
 use App\Models\Gallery;
+use App\Models\Issue;
 use App\Models\Request as ModelsRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -96,6 +97,7 @@ public function save_property(Request $request)
         
     ]);
 
+    
     // Store uploaded images
     $imagePaths = [];
 
@@ -252,18 +254,27 @@ public function edit($id) {
 public function updates(Request $request, $id) {
     Log::info($request->all());
     Log::info($id);
+    
+    // Find the partner in the User table
     $partner = User::find($id);
-
+    
+    // Update the User details
     $partner->name = $request->input('name');
     $partner->email = $request->input('email');
     $partner->phone = $request->input('phone');
-    $partner->service = $request->input('service');
-    $partner->description = $request->input('description');
-
+    // $partner->flat = $request->input('flat');
+    
+    // Save the User model
     $partner->save();
+    
+    // Update the flat in the SocietyMember table
+    SocietyMember::where('user_id', $id)->update([
+        'flat' => $request->input('flat')
+    ]);
 
     return response()->json(['success' => 'Details Updated Successfully!']);
 }
+
 
 public function editFacilityPartner($id)
 {
@@ -289,17 +300,29 @@ public function updateFacilityPartner(Request $request, $id)
 
 public function destroyFacilityPartner($id)
 {
-    // $partner = User::findOrFail($id);
-    // $partner->delete();
 
-    // Optionally, update the role back to user
     $user = User::find($id);
-    $user->role="user";
-    $user->service=null;
-    $user->description=null;
-    $user->save();
-    return response()->json(['success' => 'Partner deleted and role reverted.']);
+
+    if ($user) {
+
+        $societyMember = SocietyMember::where('user_id', $id)->first();
+
+        if ($societyMember) {
+            $societyMember->delete();
+        }
+
+        $user->role = "user";
+        $user->service = null;
+        $user->description = null;
+
+        $user->save();
+
+        return response()->json(['success' => 'Partner deleted and role reverted.']);
+    }
+
+    return response()->json(['error' => 'User not found!'], 404);
 }
+
 public function deleteProperty($id)
 {
     $property = PropertyUnapproved::findOrFail($id); // Ensure you retrieve the property or fail if not found
@@ -368,6 +391,57 @@ public function editBusinessPartner($id)
     $partner = BusinessPartner::findOrFail($id);
     return response()->json($partner);
 }
+
+public function manageImages($id)
+{
+    $gallery = Gallery::findOrFail($id);
+    $images = json_decode($gallery->image); // Decode JSON array
+    return view('admin.manage-image', compact('gallery', 'images'));
+}
+public function deleteImage(Request $request, $id)
+{
+    $gallery = Gallery::findOrFail($id);
+    $images = json_decode($gallery->image, true); // Get images array
+
+    // Remove the image from array
+    if(($key = array_search($request->image, $images)) !== false) {
+        unset($images[$key]);
+    }
+
+    // Update JSON in the database
+    $gallery->image = json_encode(array_values($images));
+    $gallery->save();
+
+    // Delete file from public/uploads
+    $imagePath = public_path('uploads/' . $request->image);
+    if (file_exists($imagePath)) {
+        unlink($imagePath);
+    }
+
+    return redirect()->back()->with('success', 'Image deleted successfully.');
+}
+
+public function addImage(Request $request, $id)
+{
+    $gallery = Gallery::findOrFail($id);
+    $images = json_decode($gallery->image, true); // Get existing images
+
+    // Handle file upload
+    if ($request->hasFile('new_images')) {
+        foreach ($request->file('new_images') as $file) {
+            $fileName = time() . '-' . $file->getClientOriginalName();
+            $file->move(public_path('uploads'), $fileName);
+            $images[] = $fileName; // Add new image to array
+        }
+
+        // Update JSON in the database
+        $gallery->image = json_encode($images);
+        $gallery->save();
+    }
+
+    return redirect()->back()->with('success', 'Images added successfully.');
+}
+
 
 public function saveBusinessPartner(Request $request) 
 { 
@@ -560,72 +634,22 @@ public function destroySocietyMember($id)
     }
 }
 
-public function update(Request $request, $id)
-{
-    // Validate the incoming request data
-    $validated = $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|',
-        'phone_number' => 'required|digits:10',
-        'flat' => 'required|string|max:10',
-        'file' => 'nullable|file|mimes:pdf,doc,docx,jpg,png|max:2048',
-    ]);
+public function update(Request $request, $id) {
+    Log::info($request->all());
+    Log::info($id);
+    $partner = User::find($id);
 
-    // Fetch the corresponding SocietyMember by ID
-    $member = SocietyMember::where('user_id',$id)->first(); // findOrFail instead of where to directly get the record
-    
-    // Update the member's fields
-    $member->name = $validated['name'];
-    $member->email = $validated['email'];
-    $member->phone_number = $validated['phone_number'];
-    $member->flat = $validated['flat'];
+    $partner->name = $request->input('name');
+    $partner->email = $request->input('email');
+    $partner->phone = $request->input('phone');
+    $partner->service = $request->input('service');
+    $partner->description = $request->input('description');
 
-    // Handle file upload if a file was provided
-    if ($request->hasFile('file')) {
-        // Delete the previous file if it exists
-        if ($member->file && file_exists(public_path('documents/' . $member->file))) {
-            unlink(public_path('documents/' . $member->file));
-        }
+    $partner->save();
 
-        // Save the new file
-        $file = $request->file('file');
-        $filename = time() . '.' . $file->getClientOriginalExtension();
-        $file->move(public_path('documents'), $filename);
-        $member->document= $filename;  // Update the file field
-    }
-
-    // Save the updated member information
-    $member->save();
-
-    // Return a JSON response
-    
-    return redirect()->back()->with('success', 'Society Member updated Successfully!');
+    return response()->json(['success' => 'Details Updated Successfully!']);
 }
 
-// public function updateProfile(Request $request)
-// {
-//     $request->validate([
-//         'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-//     ]);
-
-//     $user = Auth::user();
-
-//     if ($request->hasFile('profile_image')) {
-//         $file = $request->file('profile_image');
-//         $fileName = time() . '_' . $file->getClientOriginalName();
-//         $filePath = $file->storeAs('uploads/profile_images', $fileName, 'public');
-
-//         // Update the user's profile_image in the database
-//         $user->profile_image = $filePath;
-//         $user->save();
-
-//         // Return the new image URL as a JSON response
-//         return response()->json(['image_url' => asset('storage/' . $filePath)]);
-//     }
-
-//     return response()->json(['error' => 'Image upload failed'], 500);
-// }
- 
 public function updateProfile(Request $request)
 {
     // Validate incoming data
@@ -710,11 +734,36 @@ public function saveNotice(Request $request)
     return redirect()->route('notice-board')->with('success', 'Notice added successfully.');
 }
 
-public function showgallery()
+public function showGallery()
 {
-    $pictures = Gallery::where('user_id', auth()->id())->get();
+
+    $noticessw = auth()->user()->society_name;
+    
+    // Decode the string to get the actual array of society IDs
+    $societyIds = json_decode($noticessw, true); // Converts string to array
+    
+    
+
+    // Fetch the gallery pictures where society_id matches
+    $pictures = Gallery::whereIn('society_id', $societyIds)->get();
+
+    // Pass the pictures to the view
     return view('admin.gallery', compact('pictures'));
 }
+
+public function deleteGallery($id)
+{
+    $picture = Gallery::find($id); // Replace with your model
+   if($picture){
+        $picture->delete();
+
+        return response()->json(['success' => true]);
+    } else {
+        return response()->json(['success' => false], 404);
+    }
+}
+
+
 public function viewRequests()
 {
     $req=ModelsRequest::all();
@@ -730,63 +779,125 @@ public function viewRequests()
     return view('admin.requests',compact('req'));
 }
 
-public function savegallery(Request $request)
+public function saveGallery(Request $request)
 {
+    // Validate the request
     $request->validate([
-        'title' => 'required|string|max:255',
-        'picture' => 'required|image|mimes:jpeg,png,jpg,gif',
+        'ename' => 'required|string',
+        'society_id' => 'required', 
+        'picture.*' => 'required|image',
+        'date' => 'required|date',
     ]);
 
-    $fileName = time() . '.' . $request->picture->extension();
-    $path = $request->picture->move(public_path('uploads'), $fileName);
+    Log::info($request);
+    // Handle file uploads
+    $imagePaths = [];
 
-    Gallery::create([
-        'title' => $request->title,
-        'file_path' => $fileName,
-        'user_id' => auth()->id(), // Associate the image with the currently authenticated user
-    ]);
+    if ($request->hasFile('picture')) {
+        foreach ($request->file('picture') as $file) {
+            $ext = $file->getClientOriginalExtension();
+            $filename = time() . '.' . $ext;
+            $file->move('uploads/' . $request->name, $filename);
+            $imagePaths[] = $filename;
+        }
+    }
+    // Save gallery details to the database
+    $gallery = new Gallery();
+    $gallery->event_name = $request->ename;
+    $gallery->society_id = $request->society_id;
+    // $gallery->image = json_encode($images); // Store the image file names as JSON
+    $gallery->date = $request->date;
+    $gallery->image = json_encode($imagePaths);
+    $gallery->save();
 
-    return redirect()->route('gallery');
+    // Redirect back with success message
+    return redirect()->back()->with('success', 'Gallery saved successfully.');
 }
 
-    public function showIssueForm()
-    {
-        return view('issues.create');
+public function viewissue(){
+
+    $userId = auth()->user()->society_name;
+
+    // Get the society id linked to the admin
+    $societyIds = $societyIds = json_decode($userId, true);
+
+    // Fetch the issues for this society
+    $issues = Issue::whereIn('society_id', $societyIds)->get();
+
+    return view('admin.issue', compact('issues'));
+}
+
+public function resolveIssue($id)
+{
+    // Find the issue by its ID
+    $issue = Issue::find($id);
+
+    // Ensure the issue exists
+    if (!$issue) {
+        return redirect()->back()->with('error', 'Issue not found');
     }
 
-    // Handle the issue submission
-    public function storeIssue(Request $request)
-    {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-        ]);
+    // Update the issue status to resolved
+    $issue->status = 'resolved';
 
-        $user = auth()->user();
-        $admin_id = $user->societyAdmin->id; // Adjust based on your schema
+    // Store the default admin message in the message_by_admin column
+    $issue->message_by_admin = 'Your issue has been resolved';
 
-        Issue::create([
-            'title' => $request->title,
-            'description' => $request->description,
-            'user_id' => $user->id,
-            'admin_id' => $admin_id,
-        ]);
+    // Save the changes to the issue
+    $issue->save();
 
-        return redirect()->route('issues.create')->with('success', 'Issue reported successfully!');
+    // Redirect back with a success message
+    return redirect()->back()->with('success', 'Issue marked as resolved and message sent to the user.');
+}
+
+public function sendMessage(Request $request, $id)
+{
+    // Validate the request
+    $request->validate([
+        'message' => 'required|string|',
+    ]);
+
+    // Find the issue by its ID
+    $issue = Issue::find($id);
+
+    // Ensure the issue exists
+    if (!$issue) {
+        return redirect()->back()->with('error', 'Issue not found');
     }
 
-    // Display issues for the admin
-    public function showIssue()
+    // Update the message_by_admin column with the custom message
+    $issue->message_by_admin = $request->message;
+
+    // Save the changes to the issue
+    $issue->save();
+
+    // Flash a success message
+    return redirect()->back()->with('success', 'Message sent to the user.');
+}
+
+public function updateStatus(Request $request) {
+    $request->validate([
+        'id' => 'required|integer|exists:requests,id',
+        'status' => 'required|string|in:approved,rejected',
+    ]);
+
+    $requestToUpdate = ModelsRequest::find($request->id); // Use your actual model
+    $requestToUpdate->status = $request->status;
+    if($request->status=="approved")
     {
-        $user = auth()->user();
-
-        if ($user->role !== 'admin') {
-            return redirect()->back()->with('error', 'You are not authorized to view issues.');
-        }
-
-        $issues = Issue::where('admin_id', $user->id)->with('user')->get();
-
-        return view('admin.issues', compact('issues'));
+        $user=User::find($requestToUpdate->user_id);
+        $user->role="society-admin";
+        $user->save();
     }
-    
+    else
+    {
+        $user=User::find($requestToUpdate->user_id);
+        $user->role="user";
+        $user->save();
+    }
+    $requestToUpdate->save();
+
+    return response()->json(['success' => true]);
+}
+
 }

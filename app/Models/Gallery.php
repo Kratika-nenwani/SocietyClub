@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class Gallery extends Model
 {
     use HasFactory;
-    protected $fillable = ['title', 'file_path', 'user_id'];
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
+    public $timestamps = false; 
+    public function society()
+{
+    return $this->belongsTo(Society::class, 'society_id');
+}
+    
+    protected $table = 'gallery';
 }

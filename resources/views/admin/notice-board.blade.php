@@ -121,6 +121,7 @@
             </thead>
             <tbody>
                 @foreach ($notices as $notice)
+                
                     <tr>
                         <?php
                         $society_name = DB::table('societies')
