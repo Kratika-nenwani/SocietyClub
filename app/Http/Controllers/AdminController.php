@@ -157,8 +157,6 @@ public function save_property(Request $request)
     return redirect()->back()->with('success', 'Property Submitted Successfully!!');
 }
 
-
-
 public function update_role(Request $request)
 {
     // Validate the request input
@@ -275,7 +273,6 @@ public function updates(Request $request, $id) {
     return response()->json(['success' => 'Details Updated Successfully!']);
 }
 
-
 public function editFacilityPartner($id)
 {
     $partner = User::findOrFail($id);
@@ -348,7 +345,7 @@ public function showSocietyMembers()
     $societyIds = json_decode($noticessw, true); // Converts string to array
     
     // Get notices for the authenticated user where any society_id matches the user's society_name IDs
-    $facilityPartners = Usrequiredproperty-lister::where(function ($query) use ($societyIds) {
+    $facilityPartners = User::where(function ($query) use ($societyIds) {
         foreach ($societyIds as $societyId) {
             $query->orWhereJsonContains('society_name', $societyId);
         }
