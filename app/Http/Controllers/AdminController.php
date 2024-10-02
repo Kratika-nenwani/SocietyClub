@@ -348,7 +348,7 @@ public function showSocietyMembers()
     $societyIds = json_decode($noticessw, true); // Converts string to array
     
     // Get notices for the authenticated user where any society_id matches the user's society_name IDs
-    $facilityPartners = Usrequiredproperty-lister::where(function ($query) use ($societyIds) {
+    $facilityPartners = User::where(function ($query) use ($societyIds) {
         foreach ($societyIds as $societyId) {
             $query->orWhereJsonContains('society_name', $societyId);
         }

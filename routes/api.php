@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AdminController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,3 +35,33 @@ Route::middleware('auth:sanctum')->get('/check-role', [AuthController::class, 'c
 Route::middleware('auth:sanctum')->post('/assign-role', [AdminController::class, 'assignRole']);
 Route::middleware('auth:sanctum')->get('/all-users', [AdminController::class, 'getAllUsers']);
 Route::middleware('auth:sanctum')->get('/all-properties', [AdminController::class, 'getAllProperties']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Route::middleware('auth:sanctum')->get('/notice-board', [UserController::class, 'viewNoticeBoard']);
+Route::middleware('auth:sanctum')->get('/view-gallery', [UserController::class, 'showGallery']);
+Route::middleware('auth:sanctum')->get('/get_facility_partners', [UserController::class, 'get_facility_partners']);
+Route::middleware('auth:sanctum')->get('/get_business_partners', [UserController::class, 'get_business_partners']);
+Route::middleware('auth:sanctum')->post('/add-issue', [UserController::class, 'add_issue']);
