@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\SocietyAdminController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,8 +36,3 @@ Route::middleware('auth:sanctum')->get('/check-role', [AuthController::class, 'c
 Route::middleware('auth:sanctum')->post('/assign-role', [AdminController::class, 'assignRole']);
 Route::middleware('auth:sanctum')->get('/all-users', [AdminController::class, 'getAllUsers']);
 Route::middleware('auth:sanctum')->get('/all-properties', [AdminController::class, 'getAllProperties']);
-
-
-Route::middleware('auth:sanctum')->get('/societymembers', [SocietyAdminController::class, 'getSocietyMembers']);
-Route::middleware('auth:sanctum')->get('/showFacilityPartners', [SocietyAdminController::class, 'showFacilityPartners']);
-Route::middleware('auth:sanctum')->get('/showBusinessPartners', [SocietyAdminController::class, 'showBusinessPartners']);
